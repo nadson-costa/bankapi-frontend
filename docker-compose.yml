@@ -1,0 +1,13 @@
+services:
+  frontend:
+    build: .
+    container_name: bankapi-frontend
+    restart: unless-stopped
+    ports:
+      - "3004:80"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true

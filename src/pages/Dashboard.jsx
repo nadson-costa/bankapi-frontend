@@ -29,6 +29,7 @@ export default function Dashboard() {
           <Button variant="secondary" onClick={logout}>Sair</Button>
         </div>
       </header>
+      
 
       <main className={styles.main}>
         {!conta ? (
