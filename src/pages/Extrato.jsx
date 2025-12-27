@@ -1,22 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useConta } from '../context/ContaContext';
 import api from '../services/api';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import styles from './Extrato.module.css';
 
 export default function Extrato() {
+  const { conta } = useConta();
   const [transacoes, setTransacoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    loadExtrato();
-  }, []);
+    if (conta) {
+      loadExtrato();
+    }
+  }, [conta]);
 
   async function loadExtrato() {
     try {
-      const response = await api.get('/contas/1/extrato');
+      const response = await api.get(`/contas/${conta.id}/extrato`);
       setTransacoes(response.data);
     } catch (err) {
       setError('Erro ao carregar extrato');
@@ -42,22 +46,37 @@ export default function Extrato() {
     });
   }
 
-  function getTipoLabel(tipo) {
-    const labels = {
-      DEPOSITO: 'Depósito',
-      SAQUE: 'Saque',
-      TRANSFERENCIA: 'Transferência'
-    };
-    return labels[tipo] || tipo;
+  function getTipoLabel(transacao) {
+    if (transacao.tipo === 'DEPOSITO') return 'Depósito';
+    if (transacao.tipo === 'SAQUE') return 'Saque';
+    if (transacao.tipo === 'TRANSFERENCIA') {
+      if (transacao.contaOrigemId === conta.id) {
+        return `Transferência para ${transacao.nomeDestino}`;
+      } else {
+        return `Transferência de ${transacao.nomeOrigem}`;
+      }
+    }
+    return transacao.tipo;
   }
 
+  
   function getTipoClass(tipo, contaOrigemId) {
     if (tipo === 'DEPOSITO') return styles.entrada;
     if (tipo === 'SAQUE') return styles.saida;
     if (tipo === 'TRANSFERENCIA') {
-      return contaOrigemId === 1 ? styles.saida : styles.entrada;
+      return contaOrigemId === conta.id ? styles.saida : styles.entrada;
     }
     return '';
+  }
+
+
+  function isEntrada(tipo, contaOrigemId) {
+    if (tipo === 'DEPOSITO') return true;
+    if (tipo === 'SAQUE') return false;
+    if (tipo === 'TRANSFERENCIA') {
+      return contaOrigemId !== conta.id;
+    }
+    return false;
   }
 
   if (loading) {
@@ -75,6 +94,7 @@ export default function Extrato() {
 
       {error && <p className={styles.error}>{error}</p>}
 
+
       <div className={styles.list}>
         {transacoes.length === 0 ? (
           <Card>
@@ -85,14 +105,14 @@ export default function Extrato() {
             <Card key={transacao.id}>
               <div className={styles.transacao}>
                 <div className={styles.info}>
-                  <span className={styles.tipo}>{getTipoLabel(transacao.tipo)}</span>
+                  <span className={styles.tipo}>{getTipoLabel(transacao)}</span>
                   <span className={styles.descricao}>
                     {transacao.descricao || 'Sem descrição'}
                   </span>
                   <span className={styles.data}>{formatDate(transacao.createdAt)}</span>
                 </div>
                 <span className={`${styles.valor} ${getTipoClass(transacao.tipo, transacao.contaOrigemId)}`}>
-                  {transacao.tipo === 'DEPOSITO' || (transacao.tipo === 'TRANSFERENCIA' && transacao.contaOrigemId !== 1) ? '+' : '-'}
+                  {isEntrada(transacao.tipo, transacao.contaOrigemId) ? '+' : '-'}
                   {formatMoney(transacao.valor)}
                 </span>
               </div>

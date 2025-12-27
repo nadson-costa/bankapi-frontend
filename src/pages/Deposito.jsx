@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useConta } from '../context/ContaContext';
 import api from '../services/api';
 import Button from '../components/Button';
 import Input from '../components/Input';
@@ -7,6 +8,7 @@ import Card from '../components/Card';
 import styles from './Transacao.module.css';
 
 export default function Deposito() {
+  const { conta, reloadConta } = useConta();
   const [valor, setValor] = useState('');
   const [descricao, setDescricao] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,11 +25,12 @@ export default function Deposito() {
 
     try {
       await api.post('/transacoes/deposito', {
-        contaId: 1,
+        contaId: conta.id,
         valor: parseFloat(valor),
         descricao
       });
       setSuccess('Depósito realizado com sucesso!');
+      await reloadConta();
       setTimeout(() => navigate('/'), 1500);
     } catch (err) {
       setError('Erro ao realizar depósito');

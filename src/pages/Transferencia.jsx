@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useConta } from '../context/ContaContext';
 import api from '../services/api';
 import Button from '../components/Button';
 import Input from '../components/Input';
@@ -7,6 +8,7 @@ import Card from '../components/Card';
 import styles from './Transacao.module.css';
 
 export default function Transferencia() {
+  const { conta, reloadConta } = useConta();
   const [contaDestino, setContaDestino] = useState('');
   const [valor, setValor] = useState('');
   const [descricao, setDescricao] = useState('');
@@ -24,12 +26,13 @@ export default function Transferencia() {
 
     try {
       await api.post('/transacoes/transferencia', {
-        contaOrigemId: 1,
+        contaOrigemId: conta.id,
         contaDestinoId: parseInt(contaDestino),
         valor: parseFloat(valor),
         descricao
       });
       setSuccess('Transferência realizada com sucesso!');
+      await reloadConta();
       setTimeout(() => navigate('/'), 1500);
     } catch (err) {
       setError('Erro ao realizar transferência. Verifique os dados.');
