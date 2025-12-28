@@ -1,6 +1,6 @@
 # BankAPI Frontend
 
-Interface web para o sistema bancário BankAPI. BankAPI éum projeto de estudo desenvolvida em Java/Spring Boot.
+Interface web para um projeto de estudo Java/Spring Boot de sistema bancário. Back-end do projeto: https://github.com/nadson-costa/bank-api
 
 ## Tecnologias
 
